@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS study_plans;
 DROP TABLE IF EXISTS disciplines;
 DROP TABLE IF EXISTS directions;
 
+-- Направления подготовки
 CREATE TABLE directions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
@@ -14,11 +15,13 @@ CREATE TABLE directions (
     CHECK(degree_level IN ('бакалавриат', 'магистратура', 'специалитет'))
 );
 
+-- Дисциплины
 CREATE TABLE disciplines (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE
 );
 
+-- Учебные планы (связь направления и дисциплины)
 CREATE TABLE study_plans (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     direction_id INTEGER NOT NULL,
@@ -34,6 +37,7 @@ CREATE TABLE study_plans (
     UNIQUE(direction_id, discipline_id)
 );
 
+-- Группы студентов
 CREATE TABLE groups (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -43,6 +47,7 @@ CREATE TABLE groups (
     FOREIGN KEY (direction_id) REFERENCES directions(id) ON DELETE RESTRICT
 );
 
+-- Студенты
 CREATE TABLE students (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     first_name TEXT NOT NULL,
@@ -54,6 +59,7 @@ CREATE TABLE students (
     CHECK(birth_date IS date(birth_date))
 );
 
+-- Связь студентов с группами (для хранения истории)
 CREATE TABLE student_groups (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER NOT NULL,
@@ -63,6 +69,7 @@ CREATE TABLE student_groups (
     FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE RESTRICT
 );
 
+-- Экзамены (оценки)
 CREATE TABLE exams (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER NOT NULL,
@@ -76,6 +83,7 @@ CREATE TABLE exams (
     FOREIGN KEY (study_plan_id) REFERENCES study_plans(id) ON DELETE RESTRICT
 );
 
+-- Зачеты
 CREATE TABLE credits (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER NOT NULL,
@@ -100,12 +108,14 @@ CREATE INDEX idx_exams_study_plan ON exams(study_plan_id);
 CREATE INDEX idx_credits_student ON credits(student_id);
 CREATE INDEX idx_credits_study_plan ON credits(study_plan_id);
 
+-- Направления подготовки
 INSERT INTO directions (name, degree_level) VALUES
 ('Прикладная математика и информатика', 'бакалавриат'),
-('Фундаментальная информатика и информационные технологии'),
+('Математика и компьютерные науки', 'бакалавриат'),
 ('Прикладная математика и информатика', 'магистратура'),
 ('Математика', 'бакалавриат');
 
+-- Дисциплины
 INSERT INTO disciplines (name) VALUES
 ('Математический анализ'),
 ('Алгебра и геометрия'),
@@ -118,6 +128,7 @@ INSERT INTO disciplines (name) VALUES
 ('Дифференциальные уравнения'),
 ('Численные методы');
 
+-- Учебный план для "Прикладная математика и информатика" (бакалавриат)
 INSERT INTO study_plans (direction_id, discipline_id, lecture_hours, practice_hours, assessment_type) VALUES
 (1, 1, 72, 72, 'экзамен'),  -- Математический анализ
 (1, 2, 54, 54, 'экзамен'),  -- Алгебра и геометрия
@@ -128,6 +139,7 @@ INSERT INTO study_plans (direction_id, discipline_id, lecture_hours, practice_ho
 (1, 7, 54, 54, 'экзамен'),  -- Теория вероятностей
 (1, 8, 36, 36, 'экзамен');  -- Математическая статистика
 
+-- Учебный план для "Математика и компьютерные науки" (бакалавриат)
 INSERT INTO study_plans (direction_id, discipline_id, lecture_hours, practice_hours, assessment_type) VALUES
 (2, 1, 90, 90, 'экзамен'),  -- Математический анализ
 (2, 2, 72, 72, 'экзамен'),  -- Алгебра и геометрия
@@ -136,6 +148,8 @@ INSERT INTO study_plans (direction_id, discipline_id, lecture_hours, practice_ho
 (2, 7, 72, 72, 'экзамен'),  -- Теория вероятностей
 (2, 9, 54, 54, 'экзамен');  -- Дифференциальные уравнения
 
+
+-- Группы для направления "Прикладная математика и информатика" (бакалавриат)
 INSERT INTO groups (name, direction_id, academic_year) VALUES
 ('303', 1, '2020/2021'),
 ('403', 1, '2021/2022'),
@@ -144,11 +158,11 @@ INSERT INTO groups (name, direction_id, academic_year) VALUES
 ('304', 1, '2020/2021'),
 ('404', 1, '2021/2022');
 
+-- Группы для направления "Математика и компьютерные науки" (бакалавриат)
 INSERT INTO groups (name, direction_id, academic_year) VALUES
 ('301', 2, '2020/2021'),
 ('401', 2, '2021/2022'),
 ('501', 2, '2022/2023');
-
 
 INSERT INTO students (first_name, middle_name, last_name, birth_date, gender) VALUES
 ('Иван', 'Петрович', 'Иванов', '2002-05-15', 'мужской'),
@@ -159,27 +173,31 @@ INSERT INTO students (first_name, middle_name, last_name, birth_date, gender) VA
 ('Анна', 'Ивановна', 'Федорова', '2002-07-12', 'женский'),
 ('Сергей', 'Николаевич', 'Морозов', '2002-09-05', 'мужской'),
 ('Ольга', 'Андреевна', 'Волкова', '2002-04-18', 'женский'),
-('Павел', 'Сергеевич', 'Новikov', '2002-12-08', 'мужской'),
+('Павел', 'Сергеевич', 'Новиков', '2002-12-08', 'мужской'),
 ('Татьяна', 'Викторовна', 'Лебедева', '2002-06-22', 'женский'),
 ('Андрей', 'Олегович', 'Соколов', '2002-02-14', 'мужской'),
 ('Наталья', 'Михайловна', 'Попова', '2002-10-03', 'женский');
 
+-- Студенты группы 303 (2020/2021)
 INSERT INTO student_groups (student_id, group_id, academic_year) VALUES
 (1, 1, '2020/2021'),
 (2, 1, '2020/2021'),
 (3, 1, '2020/2021'),
 (4, 1, '2020/2021');
 
+-- Студенты группы 304 (2020/2021)
 INSERT INTO student_groups (student_id, group_id, academic_year) VALUES
 (5, 5, '2020/2021'),
 (6, 5, '2020/2021'),
 (7, 5, '2020/2021');
 
+-- Студенты группы 301 (2020/2021)
 INSERT INTO student_groups (student_id, group_id, academic_year) VALUES
 (8, 7, '2020/2021'),
 (9, 7, '2020/2021'),
 (10, 7, '2020/2021');
 
+-- Переход в следующие курсы (2021/2022)
 INSERT INTO student_groups (student_id, group_id, academic_year) VALUES
 (1, 2, '2021/2022'),  -- 303 -> 403
 (2, 2, '2021/2022'),
@@ -192,10 +210,12 @@ INSERT INTO student_groups (student_id, group_id, academic_year) VALUES
 (9, 8, '2021/2022'),
 (10, 8, '2021/2022');
 
+-- Новые студенты (2021/2022)
 INSERT INTO student_groups (student_id, group_id, academic_year) VALUES
 (11, 2, '2021/2022'),
 (12, 6, '2021/2022');
 
+-- Экзамены для студентов группы 303 (2020/2021)
 INSERT INTO exams (student_id, study_plan_id, grade, exam_date, academic_year) VALUES
 (1, 1, 5, '2021-01-15', '2020/2021'),  -- Математический анализ
 (1, 2, 4, '2021-01-20', '2020/2021'),  -- Алгебра и геометрия
@@ -217,6 +237,7 @@ INSERT INTO exams (student_id, study_plan_id, grade, exam_date, academic_year) V
 (4, 3, 5, '2021-01-25', '2020/2021'),
 (4, 4, 5, '2021-01-30', '2020/2021');
 
+-- Экзамены для студентов группы 304 (2020/2021)
 INSERT INTO exams (student_id, study_plan_id, grade, exam_date, academic_year) VALUES
 (5, 1, 4, '2021-01-15', '2020/2021'),
 (5, 2, 4, '2021-01-20', '2020/2021'),
@@ -233,6 +254,7 @@ INSERT INTO exams (student_id, study_plan_id, grade, exam_date, academic_year) V
 (7, 3, 3, '2021-01-25', '2020/2021'),
 (7, 4, 2, '2021-01-30', '2020/2021');
 
+-- Экзамены для студентов группы 301 (2020/2021)
 INSERT INTO exams (student_id, study_plan_id, grade, exam_date, academic_year) VALUES
 (8, 9, 5, '2021-01-15', '2020/2021'),  -- Математический анализ (другое направление)
 (8, 10, 4, '2021-01-20', '2020/2021'), -- Алгебра и геометрия
@@ -246,6 +268,7 @@ INSERT INTO exams (student_id, study_plan_id, grade, exam_date, academic_year) V
 (10, 10, 5, '2021-01-20', '2020/2021'),
 (10, 11, 5, '2021-01-25', '2020/2021');
 
+-- Экзамены для студентов группы 403 (2021/2022)
 INSERT INTO exams (student_id, study_plan_id, grade, exam_date, academic_year) VALUES
 (1, 5, 5, '2022-01-15', '2021/2022'),  -- Базы данных
 (1, 7, 5, '2022-01-20', '2021/2022'),  -- Теория вероятностей
@@ -267,22 +290,26 @@ INSERT INTO exams (student_id, study_plan_id, grade, exam_date, academic_year) V
 (11, 7, 4, '2022-01-20', '2021/2022'),
 (11, 8, 5, '2022-01-25', '2021/2022');
 
+-- Зачеты для студентов группы 303 (2020/2021)
 INSERT INTO credits (student_id, study_plan_id, is_passed, credit_date, academic_year) VALUES
 (1, 6, 1, '2020-12-20', '2020/2021'),  -- Операционные системы
 (2, 6, 1, '2020-12-20', '2020/2021'),
 (3, 6, 1, '2020-12-20', '2020/2021'),
 (4, 6, 1, '2020-12-20', '2020/2021');
 
+-- Зачеты для студентов группы 304 (2020/2021)
 INSERT INTO credits (student_id, study_plan_id, is_passed, credit_date, academic_year) VALUES
 (5, 6, 1, '2020-12-20', '2020/2021'),
 (6, 6, 1, '2020-12-20', '2020/2021'),
 (7, 6, 0, '2020-12-20', '2020/2021');  -- Не сдал
 
+-- Зачеты для студентов группы 301 (2020/2021)
 INSERT INTO credits (student_id, study_plan_id, is_passed, credit_date, academic_year) VALUES
 (8, 12, 1, '2020-12-20', '2020/2021'),  -- Программирование
 (9, 12, 1, '2020-12-20', '2020/2021'),
 (10, 12, 1, '2020-12-20', '2020/2021');
 
+-- Зачеты для студентов группы 403 (2021/2022)
 INSERT INTO credits (student_id, study_plan_id, is_passed, credit_date, academic_year) VALUES
 (1, 6, 1, '2021-12-20', '2021/2022'),
 (2, 6, 1, '2021-12-20', '2021/2022'),
